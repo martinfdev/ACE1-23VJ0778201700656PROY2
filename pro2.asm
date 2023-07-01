@@ -77,8 +77,8 @@ cargar_nivel  db "CARGAR NIVEL$"
 configuracion db "CONFIGURACION$"
 puntajes      db "PUNTAJES ALTOS$"
 salir         db "SALIR$"
-iniciales     db "RRMS - 201902425$"
-;; JUEGO
+iniciales     db "P. Martin F. $"
+carnet 		  db "201700656 $"
 xJugador      db 0
 yJugador      db 0
 puntos        dw 0
@@ -108,28 +108,34 @@ tk_objetivo   db  08,"objetivo"
 tk_coma       db  01,","
 ;;
 numero        db  5 dup (30)
+hora          db  00
+minuto        db  00
+segundo       db  00
+ascci_numeros db  02 dup(0)
+
 .CODE
 .STARTUP
 inicio:
-		;; MODO VIDEO ;;
-		mov AH, 00
-		mov AL, 13
-		int 10
+	;; MODO VIDEO ;;
+	mov AH, 00
+	mov AL, 13
+	int 10
+	call mensaje_inicial
 		;;;;;;;;;;;;;;;;
-		call menu_principal
-		mov AL, [opcion]
-		;; > INICIAR JUEGO
-		cmp AL, 0
-		je ciclo_juego
-		;; > CARGAR NIVEL
-		cmp AL, 1
-		je cargar_un_nivel
-		;; > CONFIGURACION
-		;; > PUNTAJES ALTOS
-		;; > SALIR
-		cmp AL, 4
-		je fin
-		;;;;;;;;;;;;;;;;
+	call menu_principal
+	mov AL, [opcion]
+	;; > INICIAR JUEGO
+	cmp AL, 0
+	je ciclo_juego
+	;; > CARGAR NIVEL
+	cmp AL, 1
+	je cargar_un_nivel
+	;; > CONFIGURACION
+	;; > PUNTAJES ALTOS
+	;; > SALIR
+	cmp AL, 4
+	je fin
+	;;;;;;;;;;;;;;;;
 ciclo_juego:
 		call pintar_mapa
 		call entrada_juego
@@ -407,7 +413,33 @@ clear_h:
 		loop clear_v
 		ret
 
+mensaje_inicial:
+	call clear_pantalla
+	push DX
+	mov DL, 00
+	mov DH, 18
+	mov BH, 00
+	mov AH, 02
+	int 10
 
+	mov DX, offset iniciales
+	mov AH, 09
+	int 21
+
+	mov DL, 0F
+	mov DH, 18
+	mov BH, 00
+	mov AH, 02
+	int 10
+
+	mov DX, offset carnet
+	mov AH, 09
+	int 21
+	;esperar cual teclado !test
+	mov AH, 07
+	int 21
+	pop DX
+	ret
 ;; menu_principal - menu principal
 ;; ..
 ;; SALIDA
