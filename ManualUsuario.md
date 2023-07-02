@@ -16,7 +16,7 @@ mismas mecánicas que el juego antes mencionado.
 
 # Inicio
 
-![Inicio](images/mensaje_inicial.png)
+![Inicio](images/mensaje_inicio.png)
 
 El mensaje inicial aparace al momento de iniciar el programa!
 
@@ -30,6 +30,7 @@ En el menu principal se presentan la opciones para ingresar a sub menus que opci
 # Iniciar Juego
 
 ![Iniciar Juego](images/pantalla_juego.png)
+
 En esta opcion inicia el juego y se carga desde el primer nivel.
 
 # Cargar Nivel
