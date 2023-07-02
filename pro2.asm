@@ -417,7 +417,7 @@ mensaje_inicial:
 	call clear_pantalla
 	push DX
 	;tiempo de sistema actual
-	mov DL, 00
+	mov DL, 0F
 	mov DH, 0A
 	mov BH, 00
 	mov AH, 02
