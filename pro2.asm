@@ -79,9 +79,10 @@ puntajes      db "PUNTAJES ALTOS$"
 salir         db "SALIR$"
 iniciales     db "P. Martin F. $"
 carnet 		  db "201700656 $"
+iniciales_pie  db "P.M.F. - 201700656$"
 xJugador      db 0
 yJugador      db 0
-puntos        dw 0
+puntos        dw 0000
 ;; MENÚS
 opcion        db 0
 maximo        db 0
@@ -111,8 +112,11 @@ numero        db  5 dup (30)
 hora          db  00
 minuto        db  00
 segundo       db  00
-numero_ascii  db  02 dup(0)
-
+numero_ascii  db  02 dup (30), "$"
+dos_puntos    db  ":$"
+t_min_jueg_jug db 00
+t_hora_jueg_jug db 00
+numero_ascii_lenght5  db  05 dup (30), "$"
 .CODE
 .STARTUP
 inicio:
@@ -139,6 +143,7 @@ inicio:
 ciclo_juego:
 		call pintar_mapa
 		call entrada_juego
+		call pie_de_juego
 		jmp ciclo_juego
 		;;;;;;;;;;;;;;;;
 
@@ -375,7 +380,7 @@ fin_pintar_sprite:
 delay:
 		push SI
 		push DI
-		mov SI, 1500
+		mov SI, 200
 cicloA:
 		mov DI, 0130
 		dec SI
@@ -1123,7 +1128,8 @@ seguir_convirtiendo:
 retorno_cadenaAnum:
 		ret
 
-get_curret_time:
+;solo los segundos para llevar tiempo de juego
+get_current_time:
 	push AX
 	push CX
 	mov AH, 2C
@@ -1136,14 +1142,14 @@ get_curret_time:
 	ret
 
 get_cadena_hora:
-    ;obtenemos la fecha y la hora
+    ;obtenemos la hora
     mov AX, 0000
     mov AL, [hora]
     call numero_a_cadena
     ret
 
 get_cadena_minuto:
-    ;obtenemos la fecha y la hora
+    ;obtenemos el minuto
     mov AX, 0000
     mov AL, [minuto]
     call numero_a_cadena
@@ -1152,7 +1158,7 @@ get_cadena_minuto:
 get_cadena_segundos:
     ;obtenemos la fecha y la hora
     mov AX, 0000
-    mov AL, [minuto]
+    mov AL, [segundo]
     call numero_a_cadena
     ret
 
@@ -1170,7 +1176,7 @@ numero_a_cadena PROC
 		;; tenemos '0' en toda la cadena
 		mov CX, AX    ; inicializar contador
 		mov DI, offset numero_ascii
-		add DI, 0004
+		add DI, 0001
 		;;
     ciclo_convertirAcadena:
             mov BL, [DI]
@@ -1196,11 +1202,215 @@ numero_a_cadena PROC
             je aumentar_siguiente_digito
             pop DI         ; se recupera DI
             loop ciclo_convertirAcadena
-    ret
+    pop BX
+	pop DI
+	pop CX
+	ret
 numero_a_cadena ENDP
 
+pie_de_juego:
+	push AX
+	push DX
+	push BX
+	;encabezado con de juego
+	mov DL, 22
+	mov DH, 00
+	mov BH, 00
+	mov AH, 02
+	int 10
+	mov DX, offset numero_ascii_lenght5 
+	mov AH, 09
+	int 21
+	;pie de pagina en el ciclo del juego
+	mov DL, 00
+	mov DH, 18
+	mov BH, 00
+	mov AH, 02
+	int 10
+	mov DX, offset iniciales_pie
+	mov AH, 09
+	int 21
+	;contador del tiempo de juego transcurrido
+	call contador_tiempo_juego
 
+	;llamar etiqueta de suma de tiempo de juego
+	;imprimir el tiempo de las horas
+	;obtener get cadena hora si es mayor que 00
+	mov CL, [t_hora_jueg_jug]
+	cmp CL, 00
+	ja llamar_cadena_hora
+	jmp no_llamar_cadena_hora
+llamar_cadena_hora:	
+	call get_cadena_hora_juego
+	jmp continuar_hora
+no_llamar_cadena_hora:
+	call poner_cero_numero_ascii
+continuar_hora:	
+	mov DL, 1F
+	mov DH, 18
+	mov BH, 00
+	mov AH, 02
+	int 10
+	mov DX, offset numero_ascii
+	mov AH, 09
+	int 21
+	;imprimir dos puntos
+	mov DL, 21
+	mov DH, 18
+	mov BH, 00
+	mov AH, 02
+	int 10
+	mov DX, offset dos_puntos
+	mov AH, 09
+	int 21
+	;imprimir el tiempo de los minutos
+	mov CL, [t_min_jueg_jug]
+	cmp CL, 00
+	ja llamar_cadena_minuto
+	jmp no_llamar_cadena_minuto
+llamar_cadena_minuto:	
+	call get_cadena_minuto_juego
+	jmp continuar_minutos
+no_llamar_cadena_minuto:
+	call poner_cero_numero_ascii
+continuar_minutos:	
+	mov DL, 22
+	mov DH, 18
+	mov BH, 00
+	mov AH, 02
+	int 10
+	mov DX, offset numero_ascii
+	mov AH, 09
+	int 21
+	;imprimir dos puntos
+	mov DL, 24
+	mov DH, 18
+	mov BH, 00
+	mov AH, 02
+	int 10
+	mov DX, offset dos_puntos
+	mov AH, 09
+	int 21
+	;actualizacion del tiempo solo para segundos transcurridos
+	call get_current_time
+	;pie de pagina en el ciclo del juego tiempo de juego
+	call get_cadena_segundos
+	mov DL, 25
+	mov DH, 18
+	mov BH, 00
+	mov AH, 02
+	int 10
+	mov DX, offset numero_ascii
+	mov AH, 09
+	int 21
+	pop BX
+	pop DX
+	pop AX
+	ret	
 
+poner_cero_numero_ascii:
+	push SI
+	push BX 
+	mov SI, offset numero_ascii
+	mov BL, 30 ; 0 en ascci
+	mov [SI], BL
+	mov [SI+1], BL
+	pop BX
+	pop SI
+	ret
+
+contador_tiempo_juego:
+	push BX
+	push AX
+	mov AX, 0000
+	mov BL, [segundo]
+	cmp BL, 3B
+	je aumentar_minuto
+	jmp fin_contador_tiempo
+aumentar_minuto:
+	mov AL, [t_min_jueg_jug]
+	inc AX
+	mov [t_min_jueg_jug], AL
+
+	jmp fin_contador_tiempo
+
+fin_contador_tiempo:
+	pop AX
+	pop BX
+	ret
+
+get_cadena_hora_juego:
+    ;obtenemos la hora
+    mov AX, 0000
+    mov AL, [t_hora_jueg_jug]
+    call numero_a_cadena
+    ret
+
+get_cadena_minuto_juego:
+    ;obtenemos el minuto
+    mov AX, 0000
+    mov AL, [t_min_jueg_jug]
+    call numero_a_cadena
+    ret
+
+get_cadena_punteo:
+	push AX
+	push DX
+	mov AX, 0000
+    mov DX, [puntos]
+	call numero_a_cadena_5
+    pop DX
+	pop AX
+	ret
+
+numero_a_cadena_5 PROC
+	push CX
+	push DI
+	push BX
+
+    mov CX, 0005
+	mov DI, offset numero_ascii_lenght5
+    ciclo_poner30ss:
+		mov BL, 30
+		mov [DI], BL
+		inc DI
+		loop ciclo_poner30ss
+		;; tenemos '0' en toda la cadena
+		mov CX, AX    ; inicializar contador
+		mov DI, offset numero_ascii_lenght5
+		add DI, 0004
+		;;
+    ciclo_convertirAcadena5:
+            mov BL, [DI]
+            inc BL
+            mov [DI], BL
+            cmp BL, 3a
+            je aumentar_siguiente_digito_primera_vez5
+            loop ciclo_convertirAcadena5
+			pop BX
+			pop DI
+			pop CX
+            ret
+    aumentar_siguiente_digito_primera_vez5:
+            push DI
+    aumentar_siguiente_digito5:
+            mov BL, 30     ; poner en '0' el actual
+            mov [DI], BL
+            dec DI         ; puntero a la cadena
+            mov BL, [DI]
+            inc BL
+            mov [DI], BL
+            cmp BL, 3a
+            je aumentar_siguiente_digito5
+            pop DI         ; se recupera DI
+            loop ciclo_convertirAcadena5
+    pop BX
+	pop DI
+	pop CX
+	ret
+numero_a_cadena_5 ENDP
+
+	
 fin:
 .EXIT
 END
