@@ -111,7 +111,7 @@ numero        db  5 dup (30)
 hora          db  00
 minuto        db  00
 segundo       db  00
-ascci_numeros db  02 dup(0)
+numero_ascii  db  02 dup(0)
 
 .CODE
 .STARTUP
@@ -375,7 +375,7 @@ fin_pintar_sprite:
 delay:
 		push SI
 		push DI
-		mov SI, 0200
+		mov SI, 1500
 cicloA:
 		mov DI, 0130
 		dec SI
@@ -416,8 +416,9 @@ clear_h:
 mensaje_inicial:
 	call clear_pantalla
 	push DX
+	;tiempo de sistema actual
 	mov DL, 00
-	mov DH, 18
+	mov DH, 0A
 	mov BH, 00
 	mov AH, 02
 	int 10
@@ -427,7 +428,7 @@ mensaje_inicial:
 	int 21
 
 	mov DL, 0F
-	mov DH, 18
+	mov DH, 0C
 	mov BH, 00
 	mov AH, 02
 	int 10
@@ -435,9 +436,8 @@ mensaje_inicial:
 	mov DX, offset carnet
 	mov AH, 09
 	int 21
-	;esperar cual teclado !test
-	mov AH, 07
-	int 21
+	
+	call delay
 	pop DX
 	ret
 ;; menu_principal - menu principal
@@ -1122,6 +1122,83 @@ seguir_convirtiendo:
 		loop seguir_convirtiendo
 retorno_cadenaAnum:
 		ret
+
+get_curret_time:
+	push AX
+	push CX
+	mov AH, 2C
+	int 21
+	mov [hora], CH
+	mov [minuto], CL
+	mov [segundo], DH
+	pop CX
+	pop AX
+	ret
+
+get_cadena_hora:
+    ;obtenemos la fecha y la hora
+    mov AX, 0000
+    mov AL, [hora]
+    call numero_a_cadena
+    ret
+
+get_cadena_minuto:
+    ;obtenemos la fecha y la hora
+    mov AX, 0000
+    mov AL, [minuto]
+    call numero_a_cadena
+    ret
+
+get_cadena_segundos:
+    ;obtenemos la fecha y la hora
+    mov AX, 0000
+    mov AL, [minuto]
+    call numero_a_cadena
+    ret
+
+numero_a_cadena PROC
+	push CX
+	push DI
+	push BX
+    mov CX, 0002
+	mov DI, offset numero_ascii
+    ciclo_poner30s:
+		mov BL, 30
+		mov [DI], BL
+		inc DI
+		loop ciclo_poner30s
+		;; tenemos '0' en toda la cadena
+		mov CX, AX    ; inicializar contador
+		mov DI, offset numero_ascii
+		add DI, 0004
+		;;
+    ciclo_convertirAcadena:
+            mov BL, [DI]
+            inc BL
+            mov [DI], BL
+            cmp BL, 3a
+            je aumentar_siguiente_digito_primera_vez
+            loop ciclo_convertirAcadena
+			pop BX
+			pop DI
+			pop CX
+            ret
+    aumentar_siguiente_digito_primera_vez:
+            push DI
+    aumentar_siguiente_digito:
+            mov BL, 30     ; poner en '0' el actual
+            mov [DI], BL
+            dec DI         ; puntero a la cadena
+            mov BL, [DI]
+            inc BL
+            mov [DI], BL
+            cmp BL, 3a
+            je aumentar_siguiente_digito
+            pop DI         ; se recupera DI
+            loop ciclo_convertirAcadena
+    ret
+numero_a_cadena ENDP
+
 
 
 fin:
