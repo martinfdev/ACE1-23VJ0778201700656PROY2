@@ -14,15 +14,17 @@
 El software es un juego, basado en Sokoban, usa las
 mismas mecánicas que el juego antes mencionado.
 
-#Inicio
+# Inicio
 
 ![Inicio](images/mensaje_inicial.png)
+
 El mensaje inicial aparace al momento de iniciar el programa!
 
 
 # Menu Principal
 
 ![Menu Principal](images/main_menu.png)
+
 En el menu principal se presentan la opciones para ingresar a sub menus que opciones que se describen continuacion.
 
 # Iniciar Juego
@@ -30,10 +32,10 @@ En el menu principal se presentan la opciones para ingresar a sub menus que opci
 ![Iniciar Juego](images/pantalla_juego.png)
 En esta opcion inicia el juego y se carga desde el primer nivel.
 
-
 # Cargar Nivel
 
 ![Cargar Nivel](images/ingreso_nivel.png)
+
 En esta seccion se le pide que escriba el nombre de un nivel si existe se carga el nivel y si no existe se reiniciaria el juego.
 
 <!-- # Menu Herramientas
