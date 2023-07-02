@@ -122,8 +122,12 @@ buffer_teclado		db 09, 00
 msg_pedir_nivel	db "Ingrese el Nivel: $"
 nivel_precargado db 00 ;cambiar valor cada vez que se va ganando los niveles precargados
 nivel_1			 db "NIV.00",00
-nivel_2			 db "NIV.01",01
-nivel_3			 db "NIV.10",02
+nivel_2			 db "NIV.01",00
+nivel_3			 db "NIV.10",00
+continuar_juego	db "Continuar Jugando$"
+msg_menu_principal db "Menu Principal$"
+opcion_pausa        db 0
+maximo_pausa        db 0 
 .CODE
 .STARTUP
 inicio:
@@ -912,6 +916,7 @@ entrada_juego:
 		cmp AH, [control_derecha]
 		je mover_jugador_der
 		cmp AH, 3c
+		je menu_pausa
 		ret
 mover_jugador_arr:
 		mov AH, [xJugador]
@@ -1632,6 +1637,108 @@ contador_movimiento:
 	inc AX
 	mov [puntos], AX
 	pop AX
+	ret
+
+menu_pausa:
+	call clear_pantalla
+	mov AL, 0
+	mov [opcion_pausa], AL      ;; reinicio de la variable de salida
+	mov AL, 2
+	mov [maximo_pausa], AL
+	mov AX, 50
+	mov BX, 28
+	mov [xFlecha], AX
+	mov [yFlecha], BX
+	;; IMPRIMIR OPCIONES ;;
+	;;;; continuar juego
+	mov DL, 0c
+	mov DH, 05
+	mov BH, 00
+	mov AH, 02
+	int 10
+	;; <<-- posicionar el cursor
+	push DX
+	mov DX, offset continuar_juego
+	mov AH, 09
+	int 21
+	pop DX
+	;;
+	;;;; volver a menu principal
+	add DH, 02
+	mov BH, 00
+	mov AH, 02
+	int 10
+	push DX
+	mov DX, offset msg_menu_principal
+	mov AH, 09
+	int 21
+	pop DX
+	;;
+	call pintar_flecha
+	;;;;
+	;; LEER TECLA
+	;;;;
+entrada_menu_pausa:
+		mov AH, 00
+		int 16
+		cmp AH, 48
+		je restar_opcion_menu_pausa
+		cmp AH, 50
+		je sumar_opcion_menu_pausa
+		cmp AH, 3b  ;; le doy F1
+		je fin_menu_pausa
+		jmp entrada_menu_pausa
+restar_opcion_menu_pausa:
+		mov AL, [opcion_pausa]
+		dec AL
+		cmp AL, 0ff
+		je volver_a_cero_pausa
+		mov [opcion_pausa], AL
+		jmp mover_flecha_menu_pausa ;;;;
+sumar_opcion_menu_pausa:
+		mov AL, [opcion_pausa]
+		mov AH, [maximo_pausa]
+		inc AL
+		cmp AL, AH
+		je volver_a_maximo_pausa
+		mov [opcion_pausa], AL
+		jmp mover_flecha_menu_pausa ;;;
+volver_a_cero_pausa:
+		mov AL, 0
+		mov [opcion_pausa], AL
+		jmp mover_flecha_menu_pausa
+volver_a_maximo_pausa:
+		mov AL, [maximo_pausa]
+		dec AL
+		mov [opcion_pausa], AL
+		jmp mover_flecha_menu_pausa
+mover_flecha_menu_pausa:
+		mov AX, [xFlecha]
+		mov BX, [yFlecha]
+		mov SI, offset dim_sprite_vacio
+		mov DI, offset data_sprite_vacio
+		call pintar_sprite
+		mov AX, 50
+		mov BX, 28
+		mov CL, [opcion_pausa]
+ciclo_ubicar_flecha_menu_pausa:
+		cmp CL, 0
+		je pintar_flecha_menu_pausa
+		dec CL
+		add BX, 10
+		jmp ciclo_ubicar_flecha_menu_pausa
+pintar_flecha_menu_pausa:
+		mov [xFlecha], AX
+		mov [yFlecha], BX
+		call pintar_flecha
+		jmp entrada_menu_pausa
+		;;
+fin_menu_pausa:
+	mov AL, [opcion_pausa]
+	;; > MENU_PRINCIPAL
+	cmp AL, 1
+	je menu_principal
+	;; > SEGUIR JUGANDO
 	ret
 
 fin:
