@@ -903,6 +903,7 @@ mover_jugador_arr:
 		mov DL, SUELO
 		inc AL
 		call colocar_en_mapa
+		call contador_movimiento
 		ret
 hay_pared_arriba:
 		ret
@@ -926,6 +927,7 @@ mover_jugador_aba:
 		mov DL, SUELO
 		dec AL
 		call colocar_en_mapa
+		call contador_movimiento
 		ret
 hay_pared_abajo:
 		ret
@@ -949,6 +951,7 @@ mover_jugador_izq:
 		mov DL, SUELO
 		inc AH
 		call colocar_en_mapa
+		call contador_movimiento
 		ret
 hay_pared_izquierda:
 		ret
@@ -972,6 +975,7 @@ mover_jugador_der:
 		mov DL, SUELO
 		dec AH
 		call colocar_en_mapa
+		call contador_movimiento
 		ret
 hay_pared_derecha:
 		ret
@@ -1218,6 +1222,7 @@ pie_de_juego:
 	push DX
 	push BX
 	;encabezado con de juego
+	call get_cadena_punteo
 	mov DL, 22
 	mov DH, 00
 	mov BH, 00
@@ -1360,11 +1365,9 @@ get_cadena_minuto_juego:
 
 get_cadena_punteo:
 	push AX
-	push DX
 	mov AX, 0000
-    mov DX, [puntos]
+    mov AX, [puntos]
 	call numero_a_cadena_5
-    pop DX
 	pop AX
 	ret
 
@@ -1461,6 +1464,16 @@ copiar_a_memoria_nivel_x:
 	pop DI
 	pop SI
 	ret
+
+contador_movimiento:
+	push AX
+	mov AX, 0000
+	mov AX, [puntos]
+	inc AX
+	mov [puntos], AX
+	pop AX
+	ret 
+
 fin:
 .EXIT
 END
