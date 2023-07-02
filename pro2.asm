@@ -1006,10 +1006,11 @@ mover_jugador_der:
 		;; DL <- elemento en mapa
 		cmp DL, PARED
 		je hay_pared_derecha
-		mov [xJugador], AH
 		; ;; DL <- elemento en mapa
-		; cmp DL, CAJA ;si se encuentra caja reposicionar elemento caja
-		; je fin
+		cmp DL, CAJA ;si se encuentra caja reposicionar elemento caja
+		je mover_caja_der
+		continuar_jug_der:
+		mov [xJugador], AH
 		;;
 
 		mov DL, JUGADOR
@@ -1111,6 +1112,34 @@ mover_caja_izq:
 	inc AH
 	jmp continuar_jug_izq
 hay_pared_izq_caja:
+ret
+
+mover_caja_der:
+	mov AH, [xJugador]
+	mov AL, [yJugador]
+	inc AH
+	inc AH
+	push AX
+	call obtener_de_mapa
+	pop AX
+	cmp DL, PARED
+	je hay_pared_der_caja
+	;;
+	cmp DL, CAJA
+	je hay_pared_derecha
+	;;
+	mov DL, CAJA
+	push AX
+	call colocar_en_mapa
+	pop AX
+	;;
+; 	mov DL, CAJA
+; 	mov AH, 2
+; 	mov AL, 3
+; 	call colocar_en_mapa
+	dec AH
+	jmp continuar_jug_der
+hay_pared_der_caja:
 ret
 
 
