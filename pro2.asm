@@ -94,7 +94,7 @@ control_abajo     db  50
 control_izquierda db  4b
 control_derecha   db  4d
 ;; NIVELES
-nivel_x           db  "NIV.TXT",00
+nivel_x           db  "NIV.00",00 ;cabiar a leet entrada de teclado
 handle_nivel      dw  0000
 linea             db  100 dup (0)
 elemento_actual   db  0
@@ -117,6 +117,9 @@ dos_puntos    db  ":$"
 t_min_jueg_jug db 00
 t_hora_jueg_jug db 00
 numero_ascii_lenght5  db  05 dup (30), "$"
+buffer_teclado		db 09, 00
+					db 09 dup(0)
+msg_pedir_nivel	db "Ingrese el Nivel: $"
 .CODE
 .STARTUP
 inicio:
@@ -148,6 +151,8 @@ ciclo_juego:
 		;;;;;;;;;;;;;;;;
 
 cargar_un_nivel:
+		call clear_pantalla
+		call obtener_nombre_archivo_nivel
 		mov AL, 00
 		mov DX, offset nivel_x
 		mov AH, 3d
@@ -647,10 +652,10 @@ obtener_de_mapa:
 ;; ENTRADA:
 ;; SALIDA:
 pintar_mapa:
-		mov AL, 00   ;; fila
+		mov AL, 01   ;; fila
 		;;
 ciclo_v:
-		cmp AL, 19
+		cmp AL, 1A
 		je fin_pintar_mapa
 		mov AH, 00   ;; columna
 		;;
@@ -1410,7 +1415,52 @@ numero_a_cadena_5 PROC
 	ret
 numero_a_cadena_5 ENDP
 
+obtener_nombre_archivo_nivel:
+	push AX
+	push BX
+	push DX
+	;pintar pedir nivel
+	mov DL, 04
+	mov DH, 0C
+	mov BH, 00
+	mov AH, 02
+	int 10
+	mov DX, offset msg_pedir_nivel
+	mov AH, 09
+	int 21
+
+	;entrada en teclado!
+    mov DX, offset buffer_teclado
+    mov AH, 0A
+    int 21
 	
+	call copiar_a_memoria_nivel_x
+
+	pop DX
+	pop BX
+	pop AX
+	ret
+
+copiar_a_memoria_nivel_x:
+	push SI
+	push DI
+	push AX
+	push CX
+	mov DI, offset nivel_x
+	mov SI, offset buffer_teclado
+	inc SI
+	mov CH, 00
+	mov CL, [SI] ;se obtiene la cantidad de  letra a copiar
+	inc SI
+	ciclo_copiar_nivelx:
+		mov AL, [SI]
+		mov [DI], AL
+	loop ciclo_copiar_nivelx
+	pop CX
+	pop AX
+	pop DI
+	pop SI
+	ret
 fin:
 .EXIT
 END
